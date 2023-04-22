@@ -30,6 +30,8 @@ if(process.argv.length===3){
     })
 }
 
+//gcNVTpHVB8RtQi4Z
+
 if(process.argv.length===5){
     const phoneName = process.argv[3]
     const nr = process.argv[4]
