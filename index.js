@@ -126,7 +126,7 @@ app.delete('/api/persons/:id', (req,res, next) => {
 //     res.json(person)
 // })
 
-app.post('/api/persons', (req,res) => {
+app.post('/api/persons', (req,res, next) => {
     const body = req.body
 
     if(body.name === undefined) {
@@ -144,7 +144,7 @@ app.post('/api/persons', (req,res) => {
 
     person.save().then(savedPerson => {
         res.json(savedPerson)
-    })
+    }).catch(error => next(error))
 })
 
 app.put('/api/persons/:id', (req,res,next) => {
