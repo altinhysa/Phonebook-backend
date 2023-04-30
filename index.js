@@ -5,9 +5,31 @@ const cors = require('cors')
 const Number = require('./models/number')
 const app = express()
 
-app.use(cors())
+const requestLogger = (request, response, next) => {
+    console.log('Method:', request.method)
+    console.log('Path:  ', request.path)
+    console.log('Body:  ', request.body)
+    console.log('---')
+    next()
+  }
+  
+  const errorHandler = (error, request, response, next) => {
+    console.error(error.message)
+  
+    if (error.name === 'CastError') {
+      return response.status(400).send({ error: 'malformatted id' })
+    }
+  
+    next(error)
+  }
+  
+  const unknownEndpoint = (request, response) => {
+    response.status(404).send({ error: 'unknown endpoint' })
+  }
 
+app.use(cors())
 app.use(express.json())
+app.use(requestLogger)
 app.use(express.static('build'))
 
 morgan.token('body', (req) => JSON.stringify(req.body));
@@ -40,7 +62,7 @@ app.get('/info', (req,res) => {
     
 })
 
-app.get('/api/persons/:id', (req,res) => {
+app.get('/api/persons/:id', (req,res, next) => {
     // const id = Number(req.params.id)
     // const person = persons.find(p => p.id === id)
 
@@ -50,12 +72,16 @@ app.get('/api/persons/:id', (req,res) => {
     //     res.status(404).end()
     // }
 
-    Number.findById(request.params.id).then(note => {
-        response.json(note)
-      })
+    Number.findById(req.params.id).then(note => {
+        if(note){
+            res.json(note)
+        } else {
+            res.status(404).end()
+        }
+      }).catch(error => next(error))
 })
 
-app.delete('/api/persons/:id', (req,res) => {
+app.delete('/api/persons/:id', (req,res, next) => {
     // const id = Number(req.params.id)
     // persons = persons.filter(p => p.id !== id)
     Number.findByIdAndRemove(req.params.id)
@@ -119,6 +145,21 @@ app.post('/api/persons', (req,res) => {
     })
 })
 
+app.put('/api/persons/:id', (req,res,next) => {
+    const body = req.body
+
+    const person = {
+        name: body.name,
+        phone: body.phone
+    }
+
+    Number.findByIdAndUpdate(req.params.id,person,{ new: true }).then(updatedNumber => {
+        res.json(updatedNumber)
+    }).catch(error => next(error))
+})
+
+app.use(unknownEndpoint)
+app.use(errorHandler)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
