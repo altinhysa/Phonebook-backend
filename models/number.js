@@ -13,7 +13,7 @@ mongoose.connect(url).then(result=> {
 })
 
 
-const phoneRegex = /^(0\d{1,2}-\d{7,8})$/;
+const phoneRegex = /^(0\d{1,2}-\d{6,8})$/;
 
 const phoneValidator = [
   {
